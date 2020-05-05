@@ -1,0 +1,7 @@
+void Tree::testPrint()
+{
+    if (this->root == NULL)
+        printf("Tree is Empty!\n");
+    else
+        this->root->testPrint();
+}

@@ -1,0 +1,19 @@
+// testing to see if ordering works.
+#include <cstdio>
+void Node::testPrint()
+{
+    if (this->childLeft != NULL)
+        this->childLeft->testPrint();
+
+    printf("val: %llu, par: %llu, chL: %llu, chR: %llu",
+           this->value,
+           (this->parent == NULL ? 99999 : this->parent->value),
+           (this->childLeft == NULL ? 99999 : this->childLeft->value),
+           (this->childRight == NULL ? 99999 : this->childRight->value));
+    printf("    depth: %d, bal: %d  \n",
+           this->getDepth() - 1,
+           this->getBalanceFactor());
+
+    if (this->childRight != NULL)
+        this->childRight->testPrint();
+}
