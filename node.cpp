@@ -374,7 +374,7 @@ Node *Node::append(Node *node)
             return this->balancePush();
         }
 
-        this->childLeft->append(node);
+        return this->childLeft->append(node);
     }
     else
     {
@@ -388,7 +388,7 @@ Node *Node::append(Node *node)
             return this->balancePush();
         }
 
-        this->childRight->append(node);
+        return this->childRight->append(node);
     }
 }
 

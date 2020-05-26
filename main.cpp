@@ -4,12 +4,12 @@
    #define Type <your type or class name>
 
    Also 3 operators: = (assignment), < (less than), == (equals to)
-   have to be overriden before including "tree.cpp".
+   have to be overridden before including "tree.cpp".
 */
 #define Type unsigned long long
 #include "tree.cpp"
 /* SHA-256 of the 2 source files.
-   node.cpp  8F3D0868645A6DD2EF9DB9143F3F4EE09720E5D8F45714B3EEFAD6D035F9A1D8
+   node.cpp  3A5E3939C9FE5F2E439BD6AF09530646A94060EF3D5A42876D8A7708F2A65CA8
    tree.cpp  A8CF54502FEE3E4C200EA3D822052CE179DF8C3129F5384D01E3EE86408BCF3E
 */
 #include <cstdio>
@@ -45,7 +45,7 @@ int main()
        I will try inserting millions of duplicates
        that are already in the tree.
 
-       Duplicates sholud be ignored and not inserted.
+       Duplicates should be ignored and not inserted.
        So measuring in Mega Bytes, the memory usage
        MUST NOT seem to increase.
    */
