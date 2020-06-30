@@ -68,16 +68,13 @@ void Tree::push(const Type &value)
     }
     else
     {
-        Node *node = new Node(value),
-             *check = this->root->append(node);
+        Node *node = this->root->append(value);
 
-        if (check != NULL)
+        if (node != NULL)
         {
             ++this->size;
-            this->root = check;
+            this->root = node;
         }
-        else
-            delete node;
     }
 }
 

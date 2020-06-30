@@ -26,13 +26,11 @@ private:
     Node *getNodeToDelete();
 
 public:
-    Node();
     Node(const Type &);
-    ~Node();
 
     int getDepth();
     Node *locate(const Type &);
-    Node *append(Node *);
+    Node *append(const Type &);
     Node *remove();
     void copyAsc(Type *, int &);
     void copyDesc(Type *, int &);
@@ -304,15 +302,6 @@ Node *Node::getNodeToDelete()
 }
 
 
-Node::Node()
-{
-    this->depthLeft = 0;
-    this->depthRight = 0;
-    this->parent = NULL;
-    this->childLeft = NULL;
-    this->childRight = NULL;
-}
-
 Node::Node(const Type &value)
 {
     this->depthLeft = 0;
@@ -321,10 +310,6 @@ Node::Node(const Type &value)
     this->parent = NULL;
     this->childLeft = NULL;
     this->childRight = NULL;
-}
-
-Node::~Node()
-{
 }
 
 
@@ -357,15 +342,16 @@ Node *Node::locate(const Type &value)
     }
 }
 
-Node *Node::append(Node *node)
+Node *Node::append(const Type &value)
 {
-    if (node->value == this->value)
+    if (value == this->value)
         return NULL;
 
-    if (node->value < this->value)
+    if (value < this->value)
     {
         if (this->childLeft == NULL)
         {
+            Node *node = new Node(value);
             this->childLeft = node;
             node->parent = this;
             this->depthLeft = 1;
@@ -374,12 +360,13 @@ Node *Node::append(Node *node)
             return this->balancePush();
         }
 
-        return this->childLeft->append(node);
+        return this->childLeft->append(value);
     }
     else
     {
         if (this->childRight == NULL)
         {
+            Node *node = new Node(value);
             this->childRight = node;
             node->parent = this;
             this->depthRight = 1;
@@ -388,7 +375,7 @@ Node *Node::append(Node *node)
             return this->balancePush();
         }
 
-        return this->childRight->append(node);
+        return this->childRight->append(value);
     }
 }
 
