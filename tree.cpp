@@ -16,6 +16,12 @@ public:
 
     int getSize();
     int getDepth();
+    Node *getMinNode();
+    Node *getMaxNode();
+    Node *getMinNodeInc(const Type &);
+    Node *getMinNodeExc(const Type &);
+    Node *getMaxNodeInc(const Type &);
+    Node *getMaxNodeExc(const Type &);
     bool find(const Type &);
     void push(const Type &);
     void pop(const Type &);
@@ -49,6 +55,54 @@ int Tree::getDepth()
         return 0;
 
     return this->root->getDepth();
+}
+
+Node *Tree::getMinNode()
+{
+    if (this->root == NULL)
+        return NULL;
+
+    return this->root->getLeftMost();
+}
+
+Node *Tree::getMaxNode()
+{
+    if (this->root == NULL)
+        return NULL;
+
+    return this->root->getRightMost();
+}
+
+Node *Tree::getMinNodeInc(const Type &value)
+{
+    if (this->root == NULL)
+        return NULL;
+
+    return this->root->locateMinInc(value);
+}
+
+Node *Tree::getMinNodeExc(const Type &value)
+{
+    if (this->root == NULL)
+        return NULL;
+
+    return this->root->locateMinExc(value);
+}
+
+Node *Tree::getMaxNodeInc(const Type &value)
+{
+    if (this->root == NULL)
+        return NULL;
+
+    return this->root->locateMaxInc(value);
+}
+
+Node *Tree::getMaxNodeExc(const Type &value)
+{
+    if (this->root == NULL)
+        return NULL;
+
+    return this->root->locateMaxExc(value);
 }
 
 bool Tree::find(const Type &value)

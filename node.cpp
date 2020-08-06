@@ -2,7 +2,9 @@
 #define NODE_CPP
 
 
+#ifndef NULL
 #define NULL 0
+#endif
 
 class Node
 {
@@ -22,19 +24,29 @@ private:
     Node *rotateRR();
     Node *balancePush();
     Node *balancePull();
-    Node *getRightMost();
     Node *getNodeToDelete();
 
-public:
+    friend class Tree;
     Node(const Type &);
 
     int getDepth();
+    Node *getLeftMost();
+    Node *getRightMost();
     Node *locate(const Type &);
+    Node *locateMinInc(const Type &);
+    Node *locateMinExc(const Type &);
+    Node *locateMaxInc(const Type &);
+    Node *locateMaxExc(const Type &);
     Node *append(const Type &);
     Node *remove();
     void copyAsc(Type *, int &);
     void copyDesc(Type *, int &);
     void purge();
+
+public:
+    Type getValue();
+    Node *getNextLeft();
+    Node *getNextRight();
 };
 
 
@@ -282,14 +294,6 @@ Node *Node::balancePull()
     return a->parent->balancePull();
 }
 
-Node *Node::getRightMost()
-{
-    if (this->childRight == NULL)
-        return this;
-
-    return this->childRight->getRightMost();
-}
-
 Node *Node::getNodeToDelete()
 {
     if (this->childLeft != NULL)
@@ -321,6 +325,22 @@ int Node::getDepth()
         return this->depthRight + 1;
 }
 
+Node *Node::getLeftMost()
+{
+    if (this->childLeft == NULL)
+        return this;
+
+    return this->childLeft->getLeftMost();
+}
+
+Node *Node::getRightMost()
+{
+    if (this->childRight == NULL)
+        return this;
+
+    return this->childRight->getRightMost();
+}
+
 Node *Node::locate(const Type &value)
 {
     if (value == this->value)
@@ -339,6 +359,90 @@ Node *Node::locate(const Type &value)
             return NULL;
 
         return this->childRight->locate(value);
+    }
+}
+
+Node *Node::locateMinInc(const Type &value)
+{
+    if (value == this->value)
+        return this;
+
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this;
+
+        return this->childLeft->locateMinInc(value);
+    }
+    else
+    {
+        if (this->childRight == NULL)
+            return this->getNextRight();
+
+        return this->childRight->locateMinInc(value);
+    }
+}
+
+Node *Node::locateMinExc(const Type &value)
+{
+    if (value == this->value)
+        return this->getNextRight();
+
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this;
+
+        return this->childLeft->locateMinExc(value);
+    }
+    else
+    {
+        if (this->childRight == NULL)
+            return this->getNextRight();
+
+        return this->childRight->locateMinExc(value);
+    }
+}
+
+Node *Node::locateMaxInc(const Type &value)
+{
+    if (value == this->value)
+        return this;
+
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this->getNextLeft();
+
+        return this->childLeft->locateMaxInc(value);
+    }
+    else
+    {
+        if (this->childRight == NULL)
+            return this;
+
+        return this->childRight->locateMaxInc(value);
+    }
+}
+
+Node *Node::locateMaxExc(const Type &value)
+{
+    if (value == this->value)
+        return this->getNextLeft();
+
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this->getNextLeft();
+
+        return this->childLeft->locateMaxExc(value);
+    }
+    else
+    {
+        if (this->childRight == NULL)
+            return this;
+
+        return this->childRight->locateMaxExc(value);
     }
 }
 
@@ -461,6 +565,68 @@ void Node::purge()
         this->childRight->purge();
 
     delete this;
+}
+
+
+Type Node::getValue()
+{
+    return this->value;
+}
+
+Node *Node::getNextLeft()
+{
+    if (this->childLeft != NULL)
+        return this->childLeft->getRightMost();
+
+    if (this->parent == NULL)
+        return NULL;
+
+    if (this == this->parent->childRight)
+        return this->parent;
+
+    Node *child = this,
+         *parent;
+
+    while (true)
+    {
+        parent = child->parent;
+
+        if (parent == NULL)
+            return NULL;
+
+        if (child == parent->childRight)
+            return parent;
+
+        child = parent;
+    }
+}
+
+Node *Node::getNextRight()
+{
+    if (this->childRight != NULL)
+        return this->childRight->getLeftMost();
+
+    if (this->parent == NULL)
+        return NULL;
+
+    if (this == this->parent->childLeft)
+        return this->parent;
+
+    Node *child = this,
+         *parent;
+
+    while (true)
+    {
+        parent = child->parent;
+
+        if (parent == NULL)
+            return NULL;
+
+        if (child == parent->childLeft)
+            return parent;
+
+        child = parent;
+    }
 }
 
 
