@@ -6,6 +6,11 @@
 #define NULL 0
 #endif
 
+#ifndef Type
+#define Type unsigned
+#endif
+
+
 class Node
 {
 private:
@@ -16,41 +21,51 @@ private:
     Node *childLeft;
     Node *childRight;
 
-    int getBalanceFactor();
+    int getDepth() const;
+    int getBalanceFactor() const;
     void updateParentDepth();
+    void swap(Node *const);
     Node *rotateLL();
     Node *rotateLR();
     Node *rotateRL();
     Node *rotateRR();
     Node *balancePush();
     Node *balancePull();
-    Node *getNodeToDelete();
+    Node *getLeftMost();
+    Node *getRightMost();
+    Node *getNodeToSwap();
+    Node *append(const Type &);
+    Node *remove();
 
     friend class Tree;
     Node(const Type &);
 
-    int getDepth();
-    Node *getLeftMost();
-    Node *getRightMost();
+    Node *getRoot();
     Node *locate(const Type &);
     Node *locateMinInc(const Type &);
     Node *locateMinExc(const Type &);
     Node *locateMaxInc(const Type &);
     Node *locateMaxExc(const Type &);
-    Node *append(const Type &);
-    Node *remove();
-    void copyAsc(Type *, int &);
-    void copyDesc(Type *, int &);
+    void copyAsc(Type *const, int &) const;
+    void copyDesc(Type *const, int &) const;
     void purge();
 
 public:
-    Type getValue();
+    Type getValue() const;
     Node *getNextLeft();
     Node *getNextRight();
 };
 
 
-int Node::getBalanceFactor()
+int Node::getDepth() const
+{
+    if (this->depthLeft > this->depthRight)
+        return this->depthLeft + 1;
+    else
+        return this->depthRight + 1;
+}
+
+int Node::getBalanceFactor() const
 {
     return this->depthRight - this->depthLeft;
 }
@@ -80,11 +95,86 @@ void Node::updateParentDepth()
     this->parent->updateParentDepth();
 }
 
+void Node::swap(Node *const node)
+{
+    if (this == node->parent)
+    {
+        node->parent = this->parent;
+        this->parent = node;
+
+        if (node->parent != NULL)
+        {
+            if (node->parent->childLeft == this)
+                node->parent->childLeft = node;
+            else
+                node->parent->childRight = node;
+        }
+
+        if (this->childLeft == node)
+        {
+            this->childLeft = node->childLeft;
+            node->childLeft = this;
+
+            if (this->childLeft != NULL)
+                this->childLeft->parent = this;
+
+            node->childRight = this->childRight;
+            this->childRight = NULL;
+
+            if (node->childRight != NULL)
+                node->childRight->parent = node;
+        }
+        else
+        {
+            this->childRight = NULL;
+            node->childRight = this;
+        }
+    }
+    else
+    {
+        Node *ptr = this->parent;
+        this->parent = node->parent;
+        node->parent = ptr;
+
+        if (this->parent->childLeft == node)
+            this->parent->childLeft = this;
+        else
+            this->parent->childRight = this;
+
+        if (node->parent != NULL)
+        {
+            if (node->parent->childLeft == this)
+                node->parent->childLeft = node;
+            else
+                node->parent->childRight = node;
+        }
+
+        ptr = this->childLeft;
+        this->childLeft = node->childLeft;
+        node->childLeft = ptr;
+
+        if (this->childLeft != NULL)
+            this->childLeft->parent = this;
+
+        node->childLeft->parent = node;
+        node->childRight = this->childRight;
+        this->childRight = NULL;
+        node->childRight->parent = node;
+    }
+
+    int depth = this->depthLeft;
+    this->depthLeft = node->depthLeft;
+    node->depthLeft = depth;
+    depth = this->depthRight;
+    this->depthRight = node->depthRight;
+    node->depthRight = depth;
+}
+
 Node *Node::rotateLL()
 {
-    Node *b = this,
-         *a = this->parent,
-         *bR = b->childRight;
+    Node *const b = this;
+    Node *const a = this->parent;
+    Node *const bR = b->childRight;
 
     if (a->parent != NULL)
     {
@@ -114,11 +204,11 @@ Node *Node::rotateLL()
 
 Node *Node::rotateLR()
 {
-    Node *c = this->childRight,
-         *b = this,
-         *a = this->parent,
-         *cL = c->childLeft,
-         *cR = c->childRight;
+    Node *const c = this->childRight;
+    Node *const b = this;
+    Node *const a = this->parent;
+    Node *const cL = c->childLeft;
+    Node *const cR = c->childRight;
 
     if (a->parent != NULL)
     {
@@ -160,11 +250,11 @@ Node *Node::rotateLR()
 
 Node *Node::rotateRL()
 {
-    Node *c = this->childLeft,
-         *b = this,
-         *a = this->parent,
-         *cL = c->childLeft,
-         *cR = c->childRight;
+    Node *const c = this->childLeft;
+    Node *const b = this;
+    Node *const a = this->parent;
+    Node *const cL = c->childLeft;
+    Node *const cR = c->childRight;
 
     if (a->parent != NULL)
     {
@@ -206,9 +296,9 @@ Node *Node::rotateRL()
 
 Node *Node::rotateRR()
 {
-    Node *b = this,
-         *a = this->parent,
-         *bL = b->childLeft;
+    Node *const b = this;
+    Node *const a = this->parent;
+    Node *const bL = b->childLeft;
 
     if (a->parent != NULL)
     {
@@ -238,8 +328,8 @@ Node *Node::rotateRR()
 
 Node *Node::balancePush()
 {
-    Node *b = this,
-         *a = this->parent;
+    Node *const b = this;
+    Node *const a = this->parent;
 
     if (a == NULL)
         return b;
@@ -271,7 +361,7 @@ Node *Node::balancePull()
 
     if (balA < -1)
     {
-        Node *b = this->childLeft;
+        Node *const b = this->childLeft;
 
         if (b->getBalanceFactor() < 0)
             a = b->rotateLL();
@@ -280,7 +370,7 @@ Node *Node::balancePull()
     }
     else if (balA > 1)
     {
-        Node *b = this->childRight;
+        Node *const b = this->childRight;
 
         if (b->getBalanceFactor() < 0)
             a = b->rotateRL();
@@ -292,37 +382,6 @@ Node *Node::balancePull()
         return a;
 
     return a->parent->balancePull();
-}
-
-Node *Node::getNodeToDelete()
-{
-    if (this->childLeft != NULL)
-        return this->childLeft->getRightMost();
-
-    if (this->childRight != NULL)
-        return this->childRight;
-
-    return this;
-}
-
-
-Node::Node(const Type &value)
-{
-    this->depthLeft = 0;
-    this->depthRight = 0;
-    this->value = value;
-    this->parent = NULL;
-    this->childLeft = NULL;
-    this->childRight = NULL;
-}
-
-
-int Node::getDepth()
-{
-    if (this->depthLeft > this->depthRight)
-        return this->depthLeft + 1;
-    else
-        return this->depthRight + 1;
 }
 
 Node *Node::getLeftMost()
@@ -341,121 +400,24 @@ Node *Node::getRightMost()
     return this->childRight->getRightMost();
 }
 
-Node *Node::locate(const Type &value)
+Node *Node::getNodeToSwap()
 {
-    if (value == this->value)
-        return this;
+    if (this->childLeft != NULL)
+        return this->childLeft->getRightMost();
 
-    if (value < this->value)
-    {
-        if (this->childLeft == NULL)
-            return NULL;
+    if (this->childRight != NULL)
+        return this->childRight;
 
-        return this->childLeft->locate(value);
-    }
-    else
-    {
-        if (this->childRight == NULL)
-            return NULL;
-
-        return this->childRight->locate(value);
-    }
-}
-
-Node *Node::locateMinInc(const Type &value)
-{
-    if (value == this->value)
-        return this;
-
-    if (value < this->value)
-    {
-        if (this->childLeft == NULL)
-            return this;
-
-        return this->childLeft->locateMinInc(value);
-    }
-    else
-    {
-        if (this->childRight == NULL)
-            return this->getNextRight();
-
-        return this->childRight->locateMinInc(value);
-    }
-}
-
-Node *Node::locateMinExc(const Type &value)
-{
-    if (value == this->value)
-        return this->getNextRight();
-
-    if (value < this->value)
-    {
-        if (this->childLeft == NULL)
-            return this;
-
-        return this->childLeft->locateMinExc(value);
-    }
-    else
-    {
-        if (this->childRight == NULL)
-            return this->getNextRight();
-
-        return this->childRight->locateMinExc(value);
-    }
-}
-
-Node *Node::locateMaxInc(const Type &value)
-{
-    if (value == this->value)
-        return this;
-
-    if (value < this->value)
-    {
-        if (this->childLeft == NULL)
-            return this->getNextLeft();
-
-        return this->childLeft->locateMaxInc(value);
-    }
-    else
-    {
-        if (this->childRight == NULL)
-            return this;
-
-        return this->childRight->locateMaxInc(value);
-    }
-}
-
-Node *Node::locateMaxExc(const Type &value)
-{
-    if (value == this->value)
-        return this->getNextLeft();
-
-    if (value < this->value)
-    {
-        if (this->childLeft == NULL)
-            return this->getNextLeft();
-
-        return this->childLeft->locateMaxExc(value);
-    }
-    else
-    {
-        if (this->childRight == NULL)
-            return this;
-
-        return this->childRight->locateMaxExc(value);
-    }
+    return this;
 }
 
 Node *Node::append(const Type &value)
 {
-    if (value == this->value)
-        return NULL;
-
     if (value < this->value)
     {
         if (this->childLeft == NULL)
         {
-            Node *node = new Node(value);
+            Node *const node = new Node(value);
             this->childLeft = node;
             node->parent = this;
             this->depthLeft = 1;
@@ -466,11 +428,11 @@ Node *Node::append(const Type &value)
 
         return this->childLeft->append(value);
     }
-    else
+    else if (this->value < value)
     {
         if (this->childRight == NULL)
         {
-            Node *node = new Node(value);
+            Node *const node = new Node(value);
             this->childRight = node;
             node->parent = this;
             this->depthRight = 1;
@@ -481,60 +443,166 @@ Node *Node::append(const Type &value)
 
         return this->childRight->append(value);
     }
+    else
+        return NULL;
 }
 
 Node *Node::remove()
 {
-    Node *node = this->getNodeToDelete(),
-         *parent = node->parent;
+    Node *node = this->getNodeToSwap();
 
-    if (parent != NULL)
+    while (this != node)
     {
-        this->value = node->value;
+        this->swap(node);
+        node = this->getNodeToSwap();
+    }
 
-        if (node == parent->childLeft)
+    if (this->parent != NULL)
+    {
+        if (this == this->parent->childLeft)
         {
-            if (node->childLeft != NULL)
-            {
-                parent->childLeft = node->childLeft;
-                node->childLeft->parent = parent;
-                parent->depthLeft = 1;
-            }
-            else
-            {
-                parent->childLeft = NULL;
-                parent->depthLeft = 0;
-            }
+            this->parent->childLeft = NULL;
+            this->parent->depthLeft = 0;
         }
         else
         {
-            if (node->childLeft != NULL)
-            {
-                parent->childRight = node->childLeft;
-                node->childLeft->parent = parent;
-                parent->depthRight = 1;
-            }
-            else
-            {
-                parent->childRight = NULL;
-                parent->depthRight = 0;
-            }
+            this->parent->childRight = NULL;
+            this->parent->depthRight = 0;
         }
-    }
 
-    delete node;
-
-    if (parent != NULL)
-    {
+        Node *const parent = this->parent;
+        delete this;
         parent->updateParentDepth();
 
         return parent->balancePull();
     }
 
+    delete this;
+
     return NULL;
 }
 
-void Node::copyAsc(Type *array, int &index)
+
+Node::Node(const Type &value)
+{
+    this->depthLeft = 0;
+    this->depthRight = 0;
+    this->value = value;
+    this->parent = NULL;
+    this->childLeft = NULL;
+    this->childRight = NULL;
+}
+
+
+Node *Node::getRoot()
+{
+    if (this->parent == NULL)
+        return this;
+
+    return this->parent->getRoot();
+}
+
+Node *Node::locate(const Type &value)
+{
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return NULL;
+
+        return this->childLeft->locate(value);
+    }
+    else if (this->value < value)
+    {
+        if (this->childRight == NULL)
+            return NULL;
+
+        return this->childRight->locate(value);
+    }
+    else
+        return this;
+}
+
+Node *Node::locateMinInc(const Type &value)
+{
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this;
+
+        return this->childLeft->locateMinInc(value);
+    }
+    else if (this->value < value)
+    {
+        if (this->childRight == NULL)
+            return this->getNextRight();
+
+        return this->childRight->locateMinInc(value);
+    }
+    else
+        return this;
+}
+
+Node *Node::locateMinExc(const Type &value)
+{
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this;
+
+        return this->childLeft->locateMinExc(value);
+    }
+    else if (this->value < value)
+    {
+        if (this->childRight == NULL)
+            return this->getNextRight();
+
+        return this->childRight->locateMinExc(value);
+    }
+    else
+        return this->getNextRight();
+}
+
+Node *Node::locateMaxInc(const Type &value)
+{
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this->getNextLeft();
+
+        return this->childLeft->locateMaxInc(value);
+    }
+    else if (this->value < value)
+    {
+        if (this->childRight == NULL)
+            return this;
+
+        return this->childRight->locateMaxInc(value);
+    }
+    else
+        return this;
+}
+
+Node *Node::locateMaxExc(const Type &value)
+{
+    if (value < this->value)
+    {
+        if (this->childLeft == NULL)
+            return this->getNextLeft();
+
+        return this->childLeft->locateMaxExc(value);
+    }
+    else if (this->value < value)
+    {
+        if (this->childRight == NULL)
+            return this;
+
+        return this->childRight->locateMaxExc(value);
+    }
+    else
+        return this->getNextLeft();
+}
+
+void Node::copyAsc(Type *const array, int &index) const
 {
     if (this->childLeft != NULL)
         this->childLeft->copyAsc(array, index);
@@ -545,7 +613,7 @@ void Node::copyAsc(Type *array, int &index)
         this->childRight->copyAsc(array, index);
 }
 
-void Node::copyDesc(Type *array, int &index)
+void Node::copyDesc(Type *const array, int &index) const
 {
     if (this->childRight != NULL)
         this->childRight->copyDesc(array, index);
@@ -568,7 +636,7 @@ void Node::purge()
 }
 
 
-Type Node::getValue()
+Type Node::getValue() const
 {
     return this->value;
 }

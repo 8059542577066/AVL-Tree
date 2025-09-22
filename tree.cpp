@@ -14,19 +14,21 @@ public:
     Tree();
     ~Tree();
 
-    int getSize();
-    int getDepth();
-    Node *getMinNode();
-    Node *getMaxNode();
-    Node *getMinNodeInc(const Type &);
-    Node *getMinNodeExc(const Type &);
-    Node *getMaxNodeInc(const Type &);
-    Node *getMaxNodeExc(const Type &);
-    bool find(const Type &);
+    int getSize() const;
+    int getDepth() const;
+    Node *getMinNode() const;
+    Node *getMaxNode() const;
+    Node *getMinNodeInc(const Type &) const;
+    Node *getMinNodeExc(const Type &) const;
+    Node *getMaxNodeInc(const Type &) const;
+    Node *getMaxNodeExc(const Type &) const;
+    Node *find(const Type &) const;
+    void copyAllAsc(Type *const) const;
+    void copyAllDesc(Type *const) const;
+
     void push(const Type &);
     void pop(const Type &);
-    void copyAllAsc(Type *);
-    void copyAllDesc(Type *);
+    void pop(Node *const);
     void empty();
 };
 
@@ -44,12 +46,12 @@ Tree::~Tree()
 }
 
 
-int Tree::getSize()
+int Tree::getSize() const
 {
     return this->size;
 }
 
-int Tree::getDepth()
+int Tree::getDepth() const
 {
     if (this->root == NULL)
         return 0;
@@ -57,7 +59,7 @@ int Tree::getDepth()
     return this->root->getDepth();
 }
 
-Node *Tree::getMinNode()
+Node *Tree::getMinNode() const
 {
     if (this->root == NULL)
         return NULL;
@@ -65,7 +67,7 @@ Node *Tree::getMinNode()
     return this->root->getLeftMost();
 }
 
-Node *Tree::getMaxNode()
+Node *Tree::getMaxNode() const
 {
     if (this->root == NULL)
         return NULL;
@@ -73,7 +75,7 @@ Node *Tree::getMaxNode()
     return this->root->getRightMost();
 }
 
-Node *Tree::getMinNodeInc(const Type &value)
+Node *Tree::getMinNodeInc(const Type &value) const
 {
     if (this->root == NULL)
         return NULL;
@@ -81,7 +83,7 @@ Node *Tree::getMinNodeInc(const Type &value)
     return this->root->locateMinInc(value);
 }
 
-Node *Tree::getMinNodeExc(const Type &value)
+Node *Tree::getMinNodeExc(const Type &value) const
 {
     if (this->root == NULL)
         return NULL;
@@ -89,7 +91,7 @@ Node *Tree::getMinNodeExc(const Type &value)
     return this->root->locateMinExc(value);
 }
 
-Node *Tree::getMaxNodeInc(const Type &value)
+Node *Tree::getMaxNodeInc(const Type &value) const
 {
     if (this->root == NULL)
         return NULL;
@@ -97,7 +99,7 @@ Node *Tree::getMaxNodeInc(const Type &value)
     return this->root->locateMaxInc(value);
 }
 
-Node *Tree::getMaxNodeExc(const Type &value)
+Node *Tree::getMaxNodeExc(const Type &value) const
 {
     if (this->root == NULL)
         return NULL;
@@ -105,13 +107,32 @@ Node *Tree::getMaxNodeExc(const Type &value)
     return this->root->locateMaxExc(value);
 }
 
-bool Tree::find(const Type &value)
+Node *Tree::find(const Type &value) const
 {
     if (this->root == NULL)
-        return false;
+        return NULL;
 
-    return this->root->locate(value) != NULL;
+    return this->root->locate(value);
 }
+
+void Tree::copyAllAsc(Type *const array) const
+{
+    if (this->root != NULL)
+    {
+        int index = 0;
+        this->root->copyAsc(array, index);
+    }
+}
+
+void Tree::copyAllDesc(Type *const array) const
+{
+    if (this->root != NULL)
+    {
+        int index = 0;
+        this->root->copyDesc(array, index);
+    }
+}
+
 
 void Tree::push(const Type &value)
 {
@@ -122,7 +143,7 @@ void Tree::push(const Type &value)
     }
     else
     {
-        Node *node = this->root->append(value);
+        Node *const node = this->root->append(value);
 
         if (node != NULL)
         {
@@ -137,7 +158,7 @@ void Tree::pop(const Type &value)
     if (this->root == NULL)
         return;
 
-    Node *node = this->root->locate(value);
+    Node *const node = this->root->locate(value);
 
     if (node == NULL)
         return;
@@ -146,22 +167,16 @@ void Tree::pop(const Type &value)
     this->root = node->remove();
 }
 
-void Tree::copyAllAsc(Type *array)
+void Tree::pop(Node *const node)
 {
-    if (this->root != NULL)
-    {
-        int index = 0;
-        this->root->copyAsc(array, index);
-    }
-}
+    if (node == NULL)
+        return;
 
-void Tree::copyAllDesc(Type *array)
-{
-    if (this->root != NULL)
-    {
-        int index = 0;
-        this->root->copyDesc(array, index);
-    }
+    if (node->getRoot() != this->root)
+        return;
+
+    --this->size;
+    this->root = node->remove();
 }
 
 void Tree::empty()

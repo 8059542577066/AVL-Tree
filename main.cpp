@@ -1,16 +1,15 @@
 /* In order to use Tree class from tree.cpp
    you must define the data type you want to insert by
-   
+
    #define Type <your type or class name>
 
-   Also 3 operators: = (assignment), < (less than), == (equal to)
+   Also 2 operators: = (assignment), < (less than)
    have to be overridden before including "tree.cpp".
 */
-#define Type unsigned long long
 #include "tree.cpp"
 /* SHA-256 of the 2 source files.
-   node.cpp  4C2E40E9E8E9A58020D2C6DDB6E4535AF7B8E9A68FCC6C7EE6C94A5142FDE151
-   tree.cpp  091ABE8E8AD9AA070A1ED48D3E898AE6A1C6B0B9E295267FD1E01CD28BB93A8A
+   node.cpp  1EDD6975EC90595D54607C06A8C8A9859F2D89F124097FA45611FAFDB7A98C36
+   tree.cpp  F37D71951CF453FB6579E7822BBD39B8AB4C7B51F331D147944959A1D88ACD9F
 */
 #include <cstdio>
 #include <cstdlib>
@@ -62,7 +61,7 @@ int main()
    system("pause");
 
    /* Test <2a>
-       
+
        I will delete the first 7/8 items from the tree.
 
        After the deletion if balancing worked properly
@@ -82,7 +81,7 @@ int main()
    system("pause");
 
    /* Test <2b>
-    
+
        I will delete all items from the tree except the last 3.
 
        Valid AVL rebalancing has to keep any possible
@@ -105,7 +104,7 @@ int main()
 
        Using empty() function to clear out the tree.
        Unlike the destructor though, the same tree should be usable.
-       
+
        I will test it by first calling empty() function,
        then repeat <1a> process to reinsert items to the same tree.
    */
@@ -151,9 +150,59 @@ int main()
    array2.clear();
    system("pause");
 
+   /* Test <3c>
+
+       I will delete items using iterator (Node *) as param.
+       Deleting the middle 1/3 of the tree in DESCending order
+       WILL inevitably invoke node replacement then deletion.
+       Also because AVL tree's L-R imbalance ratio can't exceed
+       1:1.618(or 1.618:1), in this deletion loop
+       there WILL be case(s) where the root node is deleted as well.
+
+       Then I will delete the rest of the tree using iterator traversal
+       but in ASCending order to make sure calling iterator deletion
+       works safely until all the items are deleted.
+   */
+   printf("\n\n-----Test <3c>-----\n");
+   Node *curr = tree.getMaxNodeInc(size / 3 * 2),
+        *term = tree.getMaxNodeExc(size / 3),
+        *next = curr->getNextLeft();
+
+   while (true)
+   {
+      tree.pop(curr);
+
+      if (next == term)
+         break;
+
+      curr = next;
+      next = curr->getNextLeft();
+   }
+
+   printf("1/3 middle items are deleted in Desc order.\n");
+   curr = tree.getMinNode();
+   term = NULL;
+   next = curr->getNextRight();
+
+   while (true)
+   {
+      tree.pop(curr);
+
+      if (next == term)
+         break;
+
+      curr = next;
+      next = curr->getNextRight();
+   }
+
+   printf("All remaining items are deleted in Asc order.\n");
+   printf("Size(0):  %d\n", tree.getSize());
+   printf("Depth(0): %d\n", tree.getDepth());
+   system("pause");
+
    /* Test <4a>
 
-       I will empty the tree, then fill them up with even numbers.
+       I will fill the tree up with even numbers.
        In version 1.2, class structures have been modified
        and position iterators and traversing functions have been added.
 
@@ -161,7 +210,6 @@ int main()
        if they return the correct node positions.
    */
    printf("\n\n-----Test <4a>-----\n");
-   tree.empty();
 
    for (int i = size; i != 2; i -= 2)
       tree.push(i);
@@ -169,30 +217,30 @@ int main()
    printf("Even numbers are inserted.\n");
    Node *min = tree.getMinNodeInc(1000000),
         *max = tree.getMaxNodeInc(1000000);
-   printf("\nSmallest value greater than or equal to 10**6(10**6): %llu\n",
+   printf("\nSmallest value greater than or equal to 10**6(10**6): %u\n",
           min->getValue());
-   printf("Largest value less than or equal to 10**6(10**6):     %llu\n",
+   printf("Largest value less than or equal to 10**6(10**6):     %u\n",
           max->getValue());
 
    min = tree.getMinNodeInc(999999);
    max = tree.getMaxNodeInc(999999);
-   printf("\nSmallest value greater than or equal to 10**6 - 1(10**6): %llu\n",
+   printf("\nSmallest value greater than or equal to 10**6 - 1(10**6): %u\n",
           min->getValue());
-   printf("Largest value less than or equal to 10**6 - 1(10**6 - 2): %llu\n",
+   printf("Largest value less than or equal to 10**6 - 1(10**6 - 2): %u\n",
           max->getValue());
 
    min = tree.getMinNodeExc(1000000);
    max = tree.getMaxNodeExc(1000000);
-   printf("\nSmallest value greater than 10**6(10**6 + 2): %llu\n",
+   printf("\nSmallest value greater than 10**6(10**6 + 2): %u\n",
           min->getValue());
-   printf("Largest value less than 10**6(10**6 - 2):     %llu\n",
+   printf("Largest value less than 10**6(10**6 - 2):     %u\n",
           max->getValue());
 
    min = tree.getMinNodeExc(999999);
    max = tree.getMaxNodeExc(999999);
-   printf("\nSmallest value greater than 10**6 - 1(10**6): %llu\n",
+   printf("\nSmallest value greater than 10**6 - 1(10**6): %u\n",
           min->getValue());
-   printf("Largest value less than 10**6 - 1(10**6 - 2): %llu\n",
+   printf("Largest value less than 10**6 - 1(10**6 - 2): %u\n",
           max->getValue());
    system("pause");
 
