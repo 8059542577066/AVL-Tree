@@ -41,7 +41,9 @@ private:
     Node(const Type &);
 
     Node *getRoot();
+#ifndef MULTI
     Node *locate(const Type &);
+#endif
     Node *locateMinInc(const Type &);
     Node *locateMinExc(const Type &);
     Node *locateMaxInc(const Type &);
@@ -428,7 +430,11 @@ Node *Node::append(const Type &value)
 
         return this->childLeft->append(value);
     }
+#ifndef MULTI
     else if (this->value < value)
+#else
+    else
+#endif
     {
         if (this->childRight == NULL)
         {
@@ -443,8 +449,10 @@ Node *Node::append(const Type &value)
 
         return this->childRight->append(value);
     }
+#ifndef MULTI
     else
         return NULL;
+#endif
 }
 
 Node *Node::remove()
@@ -502,6 +510,7 @@ Node *Node::getRoot()
     return this->parent->getRoot();
 }
 
+#ifndef MULTI
 Node *Node::locate(const Type &value)
 {
     if (value < this->value)
@@ -521,17 +530,11 @@ Node *Node::locate(const Type &value)
     else
         return this;
 }
+#endif
 
 Node *Node::locateMinInc(const Type &value)
 {
-    if (value < this->value)
-    {
-        if (this->childLeft == NULL)
-            return this;
-
-        return this->childLeft->locateMinInc(value);
-    }
-    else if (this->value < value)
+    if (this->value < value)
     {
         if (this->childRight == NULL)
             return this->getNextRight();
@@ -539,27 +542,17 @@ Node *Node::locateMinInc(const Type &value)
         return this->childRight->locateMinInc(value);
     }
     else
-        return this;
-}
-
-Node *Node::locateMinExc(const Type &value)
-{
-    if (value < this->value)
     {
         if (this->childLeft == NULL)
             return this;
 
-        return this->childLeft->locateMinExc(value);
+        return this->childLeft->locateMinInc(value);
     }
-    else if (this->value < value)
-    {
-        if (this->childRight == NULL)
-            return this->getNextRight();
+}
 
-        return this->childRight->locateMinExc(value);
-    }
-    else
-        return this->getNextRight();
+Node *Node::locateMinExc(const Type &value)
+{
+    return this->locateMaxInc(value)->getNextRight();
 }
 
 Node *Node::locateMaxInc(const Type &value)
@@ -571,35 +564,18 @@ Node *Node::locateMaxInc(const Type &value)
 
         return this->childLeft->locateMaxInc(value);
     }
-    else if (this->value < value)
+    else
     {
         if (this->childRight == NULL)
             return this;
 
         return this->childRight->locateMaxInc(value);
     }
-    else
-        return this;
 }
 
 Node *Node::locateMaxExc(const Type &value)
 {
-    if (value < this->value)
-    {
-        if (this->childLeft == NULL)
-            return this->getNextLeft();
-
-        return this->childLeft->locateMaxExc(value);
-    }
-    else if (this->value < value)
-    {
-        if (this->childRight == NULL)
-            return this;
-
-        return this->childRight->locateMaxExc(value);
-    }
-    else
-        return this->getNextLeft();
+    return this->locateMinInc(value)->getNextLeft();
 }
 
 void Node::copyAsc(Type *const array, int &index) const

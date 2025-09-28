@@ -1,288 +1,306 @@
-/* In order to use Tree class from tree.cpp
-   you must define the data type you want to insert by
+// In order to use Tree class from tree.cpp
+// you must define the data type you want to insert by
 
-   #define Type <your type or class name>
+// #define Type <your type or class name>
 
-   Also 2 operators: = (assignment), < (less than)
-   have to be overridden before including "tree.cpp".
-*/
+// Also 2 operators: = (assignment), < (less than)
+// have to be overridden before including "tree.cpp".
+#define Type unsigned
+
+#define Node NodeUnique
+#define Tree TreeUnique
 #include "tree.cpp"
-/* SHA-256 of the 2 source files.
-   node.cpp  1EDD6975EC90595D54607C06A8C8A9859F2D89F124097FA45611FAFDB7A98C36
-   tree.cpp  F37D71951CF453FB6579E7822BBD39B8AB4C7B51F331D147944959A1D88ACD9F
-*/
+// SHA-256 of the 2 source files.
+// node.cpp  6FBFE3C53F6F899DE3FB4BECECCE423C27653C1C6210B0E9FDCE92B690A2A6DD
+// tree.cpp  C931A68441BAC8F71C9AE96A1E9C39A1EBAD19C686A461E4D5243349EA8E0802
+#undef NODE_CPP
+#undef TREE_CPP
+#undef Node
+#undef Tree
+
+#define Node NodeMulti
+#define Tree TreeMulti
+#define MULTI
+#include "tree.cpp"
+#undef NODE_CPP
+#undef TREE_CPP
+#undef Node
+#undef Tree
+#undef MULTI
+
+#include <vector>
 #include <cstdio>
 #include <cstdlib>
-#include <vector>
-#include <algorithm>
+
+
+bool inAscOrder(const std::vector<unsigned> &vector)
+{
+    bool check = true;
+
+    for (std::size_t i = 1; i < vector.size(); ++i)
+        check = check && (vector[i - 1] <= vector[i]);
+
+    return check;
+}
+
+bool inDescOrder(const std::vector<unsigned> &vector)
+{
+    bool check = true;
+
+    for (std::size_t i = 1; i < vector.size(); ++i)
+        check = check && (vector[i - 1] >= vector[i]);
+
+    return check;
+}
 
 
 int main()
 {
-   Tree tree;
-   int size = 16 * 1024 * 1024;
+    TreeUnique treeUnique;
+    unsigned size = 16 * 1024 * 1024;
 
-   /* Test <1a>
+    // Test <1>
+    //   Insert (2**24 - 1) items in ASCending order.
+    //   The tree will be a perfect binary tree with depth of 24.
+    std::printf("-----Test <1>-----\n");
 
-       Insert (2**24 - 1) items from the largest to the smallest.
-       Because I insert them sequentially
-       the tree structure should be of exactly 24 depths.
-   */
-   printf("-----Test <1a>-----\n");
+    for (unsigned i = 1; i <= size - 1; ++i)
+        treeUnique.push(i);
 
-   for (int i = size; i-- != 1;)
-      tree.push(i);
+    std::printf("Size  (2**24 - 1): %d\n", treeUnique.getSize());
+    std::printf("Depth        (24): %d\n", treeUnique.getDepth());
+    std::system("pause");
 
-   printf("Size(2**24 - 1): %d\n", tree.getSize());
-   printf("Depth(24):       %d\n", tree.getDepth());
-   system("pause");
+    {
+        // Test <2a>
+        //   Delete items in DESCending order using iterator(Node *).
+        //   The tree will be left with (2**22 - 1) items and 22 deep.
+        //   Deleted items will be stored and tested for order.
+        std::printf("\n\n\n\n-----Test <2a>-----\n");
+        std::vector<unsigned> vector;
 
-   /* Test <1b>
+        NodeUnique *curr = treeUnique.find(size / 4 * 3),
+                   *term = treeUnique.getMinNode()->getNextLeft(),
+                   *next = curr->getNextLeft();
 
-       Insert 1 more new item to the tree from <1a>.
-       Now this should be +1 depth which is 25 depths.
+        while (true)
+        {
+            vector.push_back(curr->getValue());
+            treeUnique.pop(curr);
 
-       In addition to this,
-       I will try inserting millions of duplicates
-       that are already in the tree.
+            if (next == term)
+                break;
 
-       Duplicates should be ignored and not inserted.
-       So measuring in Mega Bytes, the memory usage
-       MUST NOT seem to increase.
-   */
-   printf("\n\n-----Test <1b>-----\n");
+            curr = next;
+            next = curr->getNextLeft();
+        }
 
-   for (int i = 0; i != size / 4; ++i)
-      tree.push(i);
+        std::printf("In DESC order  (1): %d\n", inDescOrder(vector));
+        std::printf("Size   (2**22 - 1): %d\n", treeUnique.getSize());
+        std::printf("Depth         (22): %d\n", treeUnique.getDepth());
+        std::system("pause");
 
-   printf("+1 item & millions of duplicates are inserted.\n");
-   printf("Size(2**24): %d\n", tree.getSize());
-   printf("Depth(25):   %d\n", tree.getDepth());
-   system("pause");
+        // Test <2b>
+        //   Delete items in ASCending order using iterator(Node *).
+        //   The tree will be left with 0 item.
+        //   Deleted items will be stored and tested for order.
+        std::printf("\n\n-----Test <2b>-----\n");
+        vector.clear();
 
-   /* Test <2a>
+        curr = treeUnique.getMinNode();
+        term = treeUnique.getMaxNode()->getNextRight();
+        next = curr->getNextRight();
 
-       I will delete the first 7/8 items from the tree.
+        while (true)
+        {
+            vector.push_back(curr->getValue());
+            treeUnique.pop(curr);
 
-       After the deletion if balancing worked properly
-       the tree should be smaller by 3 depths.
+            if (next == term)
+                break;
 
-       After this memory usage MUST decrease to roughly 1/8
-       which means deleted nodes' memory have been released.
-   */
-   printf("\n\n-----Test <2a>-----\n");
+            curr = next;
+            next = curr->getNextRight();
+        }
 
-   for (int i = size / 8 * 7; i--;)
-      tree.pop(i);
+        std::printf("In ASC order  (1): %d\n", inAscOrder(vector));
+        std::printf("Size          (0): %d\n", treeUnique.getSize());
+        std::printf("Depth         (0): %d\n", treeUnique.getDepth());
+    }
 
-   printf("7/8 smallest items are deleted.\n");
-   printf("Size(2**21): %d\n", tree.getSize());
-   printf("Depth(22):   %d\n", tree.getDepth());
-   system("pause");
+    std::printf("\n !!! Memory Cleared !!!\n");
+    std::system("pause");
 
-   /* Test <2b>
+    {
+        // Test <3a>
+        //   Insert (2**20 - 1) even numbers in DESCending order.
+        std::printf("\n\n\n\n-----Test <3a>-----\n");
 
-       I will delete all items from the tree except the last 3.
+        for (unsigned i = size / 16 - 1; i >= 1; --i)
+            treeUnique.push(2 * i);
 
-       Valid AVL rebalancing has to keep any possible
-       configurations of 3-node trees to have depths of 2.
+        std::printf("Size  (2**20 - 1): %d\n", treeUnique.getSize());
+        std::printf("Depth        (20): %d\n", treeUnique.getDepth());
 
-       While doing this, I will also try to delete items
-       that are not in the tree, and these should be ignored.
-   */
-   printf("\n\n-----Test <2b>-----\n");
+        NodeUnique *min = treeUnique.getMinNodeInc(1000000),
+                   *max = treeUnique.getMaxNodeInc(1000000);
+        std::printf("\nMIN value >= 10**6          (10**6): %u\n",
+                    min->getValue());
+        std::printf("MAX value <= 10**6          (10**6): %u\n",
+                    max->getValue());
 
-   for (int i = size - 3; i-- != size / 4 * 3;)
-      tree.pop(i);
+        min = treeUnique.getMinNodeInc(999999);
+        max = treeUnique.getMaxNodeInc(999999);
+        std::printf("\nMIN value >= 10**6 - 1      (10**6): %u\n",
+                    min->getValue());
+        std::printf("MAX value <= 10**6 - 1  (10**6 - 2): %u\n",
+                    max->getValue());
 
-   printf("3 items are left in tree.\n");
-   printf("Size(3):  %d\n", tree.getSize());
-   printf("Depth(2): %d\n", tree.getDepth());
-   system("pause");
+        min = treeUnique.getMinNodeExc(1000000);
+        max = treeUnique.getMaxNodeExc(1000000);
+        std::printf("\nMIN value > 10**6       (10**6 + 2): %u\n",
+                    min->getValue());
+        std::printf("MAX value < 10**6       (10**6 - 2): %u\n",
+                    max->getValue());
 
-   /* Test <2c>
+        min = treeUnique.getMinNodeExc(999999);
+        max = treeUnique.getMaxNodeExc(999999);
+        std::printf("\nMIN value > 10**6 - 1       (10**6): %u\n",
+                    min->getValue());
+        std::printf("MAX value < 10**6 - 1   (10**6 - 2): %u\n",
+                    max->getValue());
+        std::system("pause");
 
-       Using empty() function to clear out the tree.
-       Unlike the destructor though, the same tree should be usable.
+        // Test <3b>
+        //   Copy all items to vector in ASCending order.
+        std::printf("\n\n-----Test <3b>-----\n");
+        std::vector<unsigned> vector;
+        vector.resize(treeUnique.getSize());
+        treeUnique.copyAllAsc(&vector[0]);
+        std::printf("In ASC order  (1): %d\n", inAscOrder(vector));
+        std::system("pause");
 
-       I will test it by first calling empty() function,
-       then repeat <1a> process to reinsert items to the same tree.
-   */
-   printf("\n\n-----Test <2c>-----\n");
-   tree.empty();
-   printf("Tree is emptied.\n");
-   printf("Size(0):  %d\n", tree.getSize());
-   printf("Depth(0): %d\n", tree.getDepth());
+        // Test <3c>
+        //   Copy all items to vector in DESCending order.
+        std::printf("\n\n-----Test <3c>-----\n");
+        vector.clear();
+        treeUnique.copyAllDesc(&vector[0]);
+        std::printf("In DESC order  (1): %d\n", inDescOrder(vector));
+        std::system("pause");
+    }
 
-   for (int i = size; i--;)
-      tree.push(i);
+    // Test <4>
+    //   Empty the tree.
+    std::printf("\n\n\n\n-----Test <4>-----\n");
+    treeUnique.empty();
+    std::printf("Size   (0): %d\n", treeUnique.getSize());
+    std::printf("Depth  (0): %d\n", treeUnique.getDepth());
 
-   printf("Tree is refilled with 2**24 items.\n");
-   system("pause");
+    std::printf("\n !!! Memory Cleared !!!\n");
+    std::system("pause");
 
-   /* Test <3a>
+    // Test <5>
+    //   Insert (2**24 - 1) multi-valued(non-unique) items.
+    std::printf("\n\n\n\n-----Test <5>-----\n");
+    TreeMulti treeMulti;
 
-       I will copy all items from the tree to a vector
-       in ASCending order, then compare it with a sorted vector.
-   */
-   printf("\n\n-----Test <3a>-----\n");
-   std::vector<Type> array1;
+    for (unsigned i = 1; i <= size - 1; ++i)
+        treeMulti.push(i & 0xFF);
 
-   for (int i = 0; i != size; ++i)
-      array1.push_back(i);
+    std::printf("Size  (2**24 - 1): %d\n", treeMulti.getSize());
+    std::printf("Depth        (24): %d\n", treeMulti.getDepth());
+    std::system("pause");
 
-   std::vector<Type> array2;
-   array2.resize(size);
-   tree.copyAllAsc(&array2[0]);
-   printf("Copying tree to vector Asc(1): %d\n", array1 == array2);
-   system("pause");
+    {
+        // Test <6>
+        //   Delete items in ranges.
+        //   [LM] [->] [<-] [  ] [  ] [<-] [->] [RM]
+        //   LM - LeftMost, RM - RightMost
+        //   Arrow indicates iterator traversal direction.
+        //   Each bin([  ]) indicates 1/8 of the entire tree.
+        std::printf("\n\n\n\n-----Test <6>-----\n");
+        std::vector<unsigned> vector;
 
-   /* Test <3b>
+        NodeMulti *curr = treeMulti.getMinNodeInc(32),
+                  *term = treeMulti.getMinNodeExc(63),
+                  *next = curr->getNextRight();
 
-       I will copy all items from the tree to a vector
-       in DESCending order, then compare it with a sorted vector.
-   */
-   printf("\n\n-----Test <3b>-----\n");
-   std::reverse(array1.begin(), array1.end());
-   tree.copyAllDesc(&array2[0]);
-   printf("Copying tree to vector Desc(1): %d\n", array1 == array2);
-   array1.clear();
-   array2.clear();
-   system("pause");
+        while (true)
+        {
+            vector.push_back(curr->getValue());
+            treeMulti.pop(curr);
 
-   /* Test <3c>
+            if (next == term)
+                break;
 
-       I will delete items using iterator (Node *) as param.
-       Deleting the middle 1/3 of the tree in DESCending order
-       WILL inevitably invoke node replacement then deletion.
-       Also because AVL tree's L-R imbalance ratio can't exceed
-       1:1.618(or 1.618:1), in this deletion loop
-       there WILL be case(s) where the root node is deleted as well.
+            curr = next;
+            next = curr->getNextRight();
+        }
 
-       Then I will delete the rest of the tree using iterator traversal
-       but in ASCending order to make sure calling iterator deletion
-       works safely until all the items are deleted.
-   */
-   printf("\n\n-----Test <3c>-----\n");
-   Node *curr = tree.getMaxNodeInc(size / 3 * 2),
-        *term = tree.getMaxNodeExc(size / 3),
-        *next = curr->getNextLeft();
+        std::printf("In ASC order   (1): %d\n", inAscOrder(vector));
+        vector.clear();
 
-   while (true)
-   {
-      tree.pop(curr);
+        curr = treeMulti.getMaxNodeInc(95);
+        term = treeMulti.getMaxNodeExc(64);
+        next = curr->getNextLeft();
 
-      if (next == term)
-         break;
+        while (true)
+        {
+            vector.push_back(curr->getValue());
+            treeMulti.pop(curr);
 
-      curr = next;
-      next = curr->getNextLeft();
-   }
+            if (next == term)
+                break;
 
-   printf("1/3 middle items are deleted in Desc order.\n");
-   curr = tree.getMinNode();
-   term = NULL;
-   next = curr->getNextRight();
+            curr = next;
+            next = curr->getNextLeft();
+        }
 
-   while (true)
-   {
-      tree.pop(curr);
+        std::printf("In DESC order  (1): %d\n", inDescOrder(vector));
+        vector.clear();
 
-      if (next == term)
-         break;
+        curr = treeMulti.getMaxNodeInc(191);
+        term = treeMulti.getMaxNodeExc(160);
+        next = curr->getNextLeft();
 
-      curr = next;
-      next = curr->getNextRight();
-   }
+        while (true)
+        {
+            vector.push_back(curr->getValue());
+            treeMulti.pop(curr);
 
-   printf("All remaining items are deleted in Asc order.\n");
-   printf("Size(0):  %d\n", tree.getSize());
-   printf("Depth(0): %d\n", tree.getDepth());
-   system("pause");
+            if (next == term)
+                break;
 
-   /* Test <4a>
+            curr = next;
+            next = curr->getNextLeft();
+        }
 
-       I will fill the tree up with even numbers.
-       In version 1.2, class structures have been modified
-       and position iterators and traversing functions have been added.
+        std::printf("In DESC order  (1): %d\n", inDescOrder(vector));
+        vector.clear();
 
-       First, all the iterator functions will be tested to see
-       if they return the correct node positions.
-   */
-   printf("\n\n-----Test <4a>-----\n");
+        curr = treeMulti.getMinNodeInc(192);
+        term = treeMulti.getMinNodeExc(223);
+        next = curr->getNextRight();
 
-   for (int i = size; i != 2; i -= 2)
-      tree.push(i);
+        while (true)
+        {
+            vector.push_back(curr->getValue());
+            treeMulti.pop(curr);
 
-   printf("Even numbers are inserted.\n");
-   Node *min = tree.getMinNodeInc(1000000),
-        *max = tree.getMaxNodeInc(1000000);
-   printf("\nSmallest value greater than or equal to 10**6(10**6): %u\n",
-          min->getValue());
-   printf("Largest value less than or equal to 10**6(10**6):     %u\n",
-          max->getValue());
+            if (next == term)
+                break;
 
-   min = tree.getMinNodeInc(999999);
-   max = tree.getMaxNodeInc(999999);
-   printf("\nSmallest value greater than or equal to 10**6 - 1(10**6): %u\n",
-          min->getValue());
-   printf("Largest value less than or equal to 10**6 - 1(10**6 - 2): %u\n",
-          max->getValue());
+            curr = next;
+            next = curr->getNextRight();
+        }
 
-   min = tree.getMinNodeExc(1000000);
-   max = tree.getMaxNodeExc(1000000);
-   printf("\nSmallest value greater than 10**6(10**6 + 2): %u\n",
-          min->getValue());
-   printf("Largest value less than 10**6(10**6 - 2):     %u\n",
-          max->getValue());
+        std::printf("In ASC order   (1): %d\n", inAscOrder(vector));
+        std::printf("Size   (2**23 - 1): %d\n", treeMulti.getSize());
+    }
 
-   min = tree.getMinNodeExc(999999);
-   max = tree.getMaxNodeExc(999999);
-   printf("\nSmallest value greater than 10**6 - 1(10**6): %u\n",
-          min->getValue());
-   printf("Largest value less than 10**6 - 1(10**6 - 2): %u\n",
-          max->getValue());
-   system("pause");
+    treeMulti.empty();
+    std::printf("\n !!! Memory Cleared !!!\n");
+    std::system("pause");
 
-   /* Test <4b>
-
-       Copying all items to vector, but this time it's done using iterator.
-       Starting from the minimum and traverse all the way up.
-   */
-   printf("\n\n-----Test <4b>-----\n");
-
-   for (int i = 4; i <= size; i += 2)
-      array1.push_back(i);
-
-   array2.resize(array1.size());
-   Type *pointer = &array2[0];
-
-   for (Node *iter = tree.getMinNode(); iter != NULL;)
-   {
-      *pointer++ = iter->getValue();
-      iter = iter->getNextRight();
-   }
-
-   printf("Traversing and copying Asc(1): %d\n", array1 == array2);
-   system("pause");
-
-   /* Test <4c>
-
-       Copying all items to vector, but this time it's done using iterator.
-       Starting from the maximum and traverse all the way down.
-   */
-   printf("\n\n-----Test <4c>-----\n");
-   std::reverse(array1.begin(), array1.end());
-   pointer = &array2[0];
-
-   for (Node *iter = tree.getMaxNode(); iter != NULL;)
-   {
-      *pointer++ = iter->getValue();
-      iter = iter->getNextLeft();
-   }
-
-   printf("Traversing and copying Desc(1): %d\n", array1 == array2);
-   system("pause");
-
-   return 0;
+    return 0;
 }

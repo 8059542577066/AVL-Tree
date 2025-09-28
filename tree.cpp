@@ -22,12 +22,16 @@ public:
     Node *getMinNodeExc(const Type &) const;
     Node *getMaxNodeInc(const Type &) const;
     Node *getMaxNodeExc(const Type &) const;
+#ifndef MULTI
     Node *find(const Type &) const;
+#endif
     void copyAllAsc(Type *const) const;
     void copyAllDesc(Type *const) const;
 
     void push(const Type &);
+#ifndef MULTI
     void pop(const Type &);
+#endif
     void pop(Node *const);
     void empty();
 };
@@ -107,6 +111,7 @@ Node *Tree::getMaxNodeExc(const Type &value) const
     return this->root->locateMaxExc(value);
 }
 
+#ifndef MULTI
 Node *Tree::find(const Type &value) const
 {
     if (this->root == NULL)
@@ -114,6 +119,7 @@ Node *Tree::find(const Type &value) const
 
     return this->root->locate(value);
 }
+#endif
 
 void Tree::copyAllAsc(Type *const array) const
 {
@@ -153,6 +159,7 @@ void Tree::push(const Type &value)
     }
 }
 
+#ifndef MULTI
 void Tree::pop(const Type &value)
 {
     if (this->root == NULL)
@@ -166,6 +173,7 @@ void Tree::pop(const Type &value)
     --this->size;
     this->root = node->remove();
 }
+#endif
 
 void Tree::pop(Node *const node)
 {
